@@ -9,6 +9,22 @@ pub fn build(b: *Builder) !void {
     const test_step = b.step("test", "Run library tests");
     test_step.dependOn(&(try testStep(b, mode, target)).step);
     test_step.dependOn(&(try testStepShared(b, mode, target)).step);
+
+    const example_app = b.addExecutable("decode", "examples/decode.zig");
+    example_app.setBuildMode(mode);
+    example_app.setTarget(target);
+    example_app.addPackage(pkg);
+    try link(b, example_app, .{});
+    example_app.install();
+
+    const example_compile_step = b.step("decode", "Compile decode example");
+    example_compile_step.dependOn(&example_app.step);
+
+    const example_run_cmd = example_app.run();
+    example_run_cmd.step.dependOn(&example_app.install_step.?.step);
+
+    const example_run_step = b.step("run-decode", "Run decode");
+    example_run_step.dependOn(&example_run_cmd.step);
 }
 
 pub fn testStep(b: *Builder, mode: std.builtin.Mode, target: std.zig.CrossTarget) !*std.build.RunStep {
