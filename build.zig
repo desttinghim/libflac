@@ -96,8 +96,6 @@ fn addFLACSources(b: *Builder, lib: *std.build.LibExeObjStep, options: Options) 
     var sources = std.ArrayList([]const u8).init(b.allocator);
     var flags = std.ArrayList([]const u8).init(b.allocator);
 
-    const include_flac_src = "-I" ++ thisDir() ++ "/upstream/src/libFLAC/include/";
-
     const include_src_dir = thisDir() ++ "/upstream/src/libFLAC/";
     try sources.append(include_src_dir ++ "bitmath.c");
     try sources.append(include_src_dir ++ "bitreader.c");
@@ -118,8 +116,8 @@ fn addFLACSources(b: *Builder, lib: *std.build.LibExeObjStep, options: Options) 
     try sources.append(include_src_dir ++ "lpc_intrin_vsx.c");
     try sources.append(include_src_dir ++ "md5.c");
     try sources.append(include_src_dir ++ "memory.c");
-    try sources.append(include_src_dir ++ "metadata_iterators.c");
-    try sources.append(include_src_dir ++ "metadata_object.c");
+    // try sources.append(include_src_dir ++ "metadata_iterators.c");
+    // try sources.append(include_src_dir ++ "metadata_object.c");
     try sources.append(include_src_dir ++ "stream_decoder.c");
     try sources.append(include_src_dir ++ "stream_encoder.c");
     try sources.append(include_src_dir ++ "stream_encoder_framing.c");
@@ -128,20 +126,23 @@ fn addFLACSources(b: *Builder, lib: *std.build.LibExeObjStep, options: Options) 
     try sources.append(include_src_dir ++ "stream_encoder_intrin_ssse3.c");
     try sources.append(include_src_dir ++ "window.c");
 
-    try flags.append(include_flac_src);
-    try flags.append("-DFLAC__HAS_OGG=false");
-    try flags.append("-DPACKAGE_VERSION=\"12.0.0\"");
-    try flags.append(b.fmt("-DSIZE_MAX={}", .{std.math.maxInt(isize)}));
-    try flags.append("-DNDEBUG");
-    try flags.append("-DHAVE_LROUND");
-
     switch (lib.target_info.target.os.tag) {
         .windows => {
             try sources.append(thisDir() ++ "/upstream/include/share/win_utf8_io.h");
             try sources.append(thisDir() ++ "/upstream/src/share/win_utf8_io.c");
         },
+        // .freestanding => {
+        //     try flags.append("-I" ++ thisDir() ++ "/include/");
+        // },
         else => {},
     }
+
+    try flags.append("-I" ++ thisDir() ++ "/upstream/src/libFLAC/include/");
+    try flags.append("-DFLAC__HAS_OGG=false");
+    try flags.append("-DPACKAGE_VERSION=\"12.0.0\"");
+    try flags.append(b.fmt("-DSIZE_MAX={}", .{std.math.maxInt(isize)}));
+    try flags.append("-DNDEBUG");
+    try flags.append("-DHAVE_LROUND");
 
     lib.addCSourceFiles(sources.items, flags.items);
 }
